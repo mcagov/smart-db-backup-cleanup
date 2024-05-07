@@ -1,0 +1,7 @@
+*.rpm
+*.log
+.npmrc
+.env
+.idea
+*.log
+.history
