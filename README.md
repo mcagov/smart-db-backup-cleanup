@@ -9,4 +9,4 @@ To build locally
 
 To run
 
-    docker run -t -i --rm --env-file .env 676563297163.dkr.ecr.eu-west-2.amazonaws.com/smart-db-backup-cleanup:latest
+    docker run -t -i --rm --env-file .env 009543623063.dkr.ecr.eu-west-2.amazonaws.com/smart-db-backup-cleanup:latest
