@@ -3,7 +3,7 @@ pipeline {
     agent none  // Global agent is set to none
 
     environment {
-        AWS_CREDENTIALS_ID = 'your-aws-credentials-id'  // Replace with your actual credentials ID
+        AWS_CREDENTIALS_ID = 'aws-jenkins-service-account-credentials'  // Replace with your actual credentials ID
         DOCKER_REGISTRY = '009543623063.dkr.ecr.eu-west-2.amazonaws.com'
         DOCKER_OPTS = '--pull --compress --no-cache=true --force-rm=true --progress=plain '
         DOCKER_BUILDKIT = '1'
