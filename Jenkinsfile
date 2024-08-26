@@ -23,13 +23,13 @@ pipeline {
     }
 
     stages {
-        stage('Authenticate with ECR') {
-            agent any  // Use the default agent for this stage
+        stage('Authenticate to ECR') {
             steps {
-                script {
-                    sh '''
-                        aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $DOCKER_REGISTRY
-                    '''
+                withCredentials([aws(credentialsId: "${AWS_CREDENTIALS_ID}", accessKeyVariable: 'AWS_ACCESS_KEY_ID', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+                    script {
+                        def AWS_PASSWORD = sh(script: "aws ecr get-login-password --region ${AWS_REGION}", returnStdout: true).trim()
+                        sh "echo ${AWS_PASSWORD} | docker login --username AWS --password-stdin ${DOCKER_REGISTRY}"
+                    }
                 }
             }
         }
@@ -61,4 +61,3 @@ pipeline {
         }
     }
 }
-
