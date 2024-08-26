@@ -9,6 +9,7 @@ pipeline {
         DOCKER_IMAGE_NAME = "smart-db-backup-cleanup"
         DOCKER_TAG = "${env.BRANCH_NAME == 'master' ? 'latest' : env.BRANCH_NAME}"
         AWS_REGION = 'eu-west-2'
+        AWS_CREDENTIALS_ID = 'aws-jenkins-service-account-credentials'
     }
 
     triggers {
