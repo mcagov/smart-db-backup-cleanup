@@ -1,5 +1,7 @@
 pipeline {
 
+    agent none  // Global agent is set to none
+
     environment {
         DOCKER_REGISTRY = '009543623063.dkr.ecr.eu-west-2.amazonaws.com'
         DOCKER_OPTS = '--pull --compress --no-cache=true --force-rm=true --progress=plain '
@@ -10,7 +12,6 @@ pipeline {
     }
 
     triggers {
-        // Run once a week between the hours of 1 and 6 on Sunday
         cron('H H(1-6) * * 0')
     }
 
@@ -23,6 +24,7 @@ pipeline {
 
     stages {
         stage('Authenticate with ECR') {
+            agent any  // Use the default agent for this stage
             steps {
                 script {
                     sh '''
