@@ -15,6 +15,7 @@ pipeline {
         //DOCKER_IMAGE_NAME = "${env.JOB_NAME.split('/')[-2]?.replace("docker-","")}"
         DOCKER_IMAGE_NAME ="smart-db-backup-cleanup"
         DOCKER_TAG = "${env.BRANCH_NAME == "master" ? "latest" : env.BRANCH_NAME}"
+        AWS_REGION = 'eu-west-2'
     }
 
     triggers{
@@ -30,6 +31,15 @@ pipeline {
     }
 
     stages {
+        stage('Authenticate with ECR') {
+                    steps {
+                        script {
+                            sh '''
+                                aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $DOCKER_REGISTRY
+                            '''
+                        }
+                    }
+                }
 
         stage('build'){
             steps{
