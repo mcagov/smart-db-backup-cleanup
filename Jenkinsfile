@@ -3,13 +3,13 @@ pipeline {
     agent none  // Global agent is set to none
 
     environment {
+        AWS_CREDENTIALS_ID = 'your-aws-credentials-id'  // Replace with your actual credentials ID
         DOCKER_REGISTRY = '009543623063.dkr.ecr.eu-west-2.amazonaws.com'
         DOCKER_OPTS = '--pull --compress --no-cache=true --force-rm=true --progress=plain '
         DOCKER_BUILDKIT = '1'
         DOCKER_IMAGE_NAME = "smart-db-backup-cleanup"
         DOCKER_TAG = "${env.BRANCH_NAME == 'master' ? 'latest' : env.BRANCH_NAME}"
         AWS_REGION = 'eu-west-2'
-        AWS_CREDENTIALS_ID = 'aws-jenkins-service-account-credentials'
     }
 
     triggers {
@@ -25,6 +25,7 @@ pipeline {
 
     stages {
         stage('Authenticate to ECR') {
+            agent any  // Allocate a Jenkins agent for this stage
             steps {
                 withCredentials([aws(credentialsId: "${AWS_CREDENTIALS_ID}", accessKeyVariable: 'AWS_ACCESS_KEY_ID', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY')]) {
                     script {
@@ -54,7 +55,7 @@ pipeline {
                 stage('publish') {
                     steps {
                         sh '''
-                            docker push ${DOCKER_REGISTRY}/${DOCKER_IMAGE_NAME}:${DOCKER_TAG}
+                            docker push "${DOCKER_REGISTRY}/${DOCKER_IMAGE_NAME}:${DOCKER_TAG}"
                         '''
                     }
                 }
