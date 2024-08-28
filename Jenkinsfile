@@ -1,23 +1,18 @@
 pipeline {
 
-    agent {
-        docker {
-            image '676563297163.dkr.ecr.eu-west-2.amazonaws.com/jenkins-docker-ci:latest'
-            alwaysPull true
-            args '-v /var/run/docker.sock:/var/run/docker.sock'
-        }
-    }
+    agent none  // Global agent is set to none
 
     environment {
-        DOCKER_REGISTRY = '676563297163.dkr.ecr.eu-west-2.amazonaws.com'
+        AWS_CREDENTIALS_ID = 'aws-jenkins-service-account-credentials'  // Replace with your actual credentials ID
+        DOCKER_REGISTRY = '009543623063.dkr.ecr.eu-west-2.amazonaws.com'
         DOCKER_OPTS = '--pull --compress --no-cache=true --force-rm=true --progress=plain '
         DOCKER_BUILDKIT = '1'
         DOCKER_IMAGE_NAME = "${env.JOB_NAME.split('/')[-2]?.replace("docker-","")}"
-        DOCKER_TAG = "${env.BRANCH_NAME == "master" ? "latest" : env.BRANCH_NAME}"
+        DOCKER_TAG = "${env.BRANCH_NAME == 'master' ? 'latest' : env.BRANCH_NAME}"
+        AWS_REGION = 'eu-west-2'
     }
 
     triggers{
-        // run once a week between the hours of 1 and 6 on sunday
         cron('H H(1-6) * * 0')
     }
 
@@ -29,7 +24,27 @@ pipeline {
     }
 
     stages {
+        stage('Authenticate to ECR') {
+            agent any  // Allocate a Jenkins agent for this stage
+            steps {
+                withCredentials([aws(credentialsId: "${AWS_CREDENTIALS_ID}", accessKeyVariable: 'AWS_ACCESS_KEY_ID', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+                    script {
+                        def AWS_PASSWORD = sh(script: "aws ecr get-login-password --region ${AWS_REGION}", returnStdout: true).trim()
+                        sh "echo ${AWS_PASSWORD} | docker login --username AWS --password-stdin ${DOCKER_REGISTRY}"
+                    }
+                }
+            }
+        }
 
+        stage('setup') {
+            agent {
+                docker {
+                    image '009543623063.dkr.ecr.eu-west-2.amazonaws.com/jenkins-docker-ci:latest'
+                    alwaysPull true
+                    args '-v /var/run/docker.sock:/var/run/docker.sock -v /var/lib/jenkins/.npm:/home/jenkins/.npm'
+                }
+            }
+            stages {
         stage('build'){
             steps{
                 sh '''
@@ -41,9 +56,11 @@ pipeline {
         stage('publish') {
             steps{
                 sh '''
-                    docker push ${DOCKER_REGISTRY}/${DOCKER_IMAGE_NAME}:${DOCKER_TAG}
+                            docker push "${DOCKER_REGISTRY}/${DOCKER_IMAGE_NAME}:${DOCKER_TAG}"
                 '''
             }
         }
+    }
+}
     }
 }
